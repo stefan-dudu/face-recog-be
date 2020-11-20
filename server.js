@@ -2,6 +2,15 @@ const express = require('express');
 const bodyParser = require('body-parser');
 
 const app = express();
+// function getId(){
+//         const{id} = req.params;
+//     let found = false;
+//     database.users.forEach(user => {
+//         // if users from our upper local DB(database array) is === to the id recived from params(i guess is postman)
+//         if(user.id === id){
+//             return res.json(user);
+//         }
+// });
 
 app.use(bodyParser.json());
 
@@ -52,7 +61,34 @@ app.post('/register', (req, res)=>{
     res.json(database.users[database.users.length-1])
 })
 
+app.get("/profile/:id", (req,res) => {
+        const{id} = req.params;
+    let found = false;
+    database.users.forEach(user => {
+        // if users from our upper local DB(database array) is === to the id recived from params(i guess is postman)
+        if(user.id === id){
+            return res.json(user);
+        }
+});
+    if(!found) {
+        res.status(400).json("ain't no user with this name")
+    }
+})
+
+app.put('/image', (req, res)=>{
+        const{id} = req.body;
+    let found = false;
+    database.users.forEach(user => {
+        if(user.id === id){
+            user.entries++;
+            return res.json(user.entries);
+        }
+})
+    if(!found) {
+        res.status(400).json("ain't no user with this name")
+    }
+})
+
 app.listen(3000, () => {
     console.log('app is running on port 3000')
 })
-
