@@ -1,6 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const bcrypt = require('bcrypt-nodejs')
+const bcrypt = require('bcrypt-nodejs');
+const cors = require('cors');
 
 const app = express();
 // function getId(){
@@ -14,6 +15,7 @@ const app = express();
 // });
 
 app.use(bodyParser.json());
+app.use(cors());
 
 const database = {
     users:[
