@@ -4,16 +4,6 @@ const bcrypt = require('bcrypt-nodejs');
 const cors = require('cors');
 
 const app = express();
-// function getId(){
-//         const{id} = req.params;
-//     let found = false;
-//     database.users.forEach(user => {
-//         // if users from our upper local DB(database array) is === to the id recived from params(i guess is postman)
-//         if(user.id === id){
-//             return res.json(user);
-//         }
-// });
-
 app.use(bodyParser.json());
 app.use(cors());
 
