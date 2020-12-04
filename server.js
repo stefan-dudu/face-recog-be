@@ -2,7 +2,8 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const bcrypt = require('bcrypt-nodejs');
 const cors = require('cors');
-const knex = require('knex')
+const knex = require('knex');
+const { response } = require('express');
 
 const db = knex({
   client: 'pg',
@@ -74,16 +75,22 @@ app.post('/signin', (req, res)=>{
 
 app.post('/register', (req, res)=>{
     const{email, name, password} = req.body;
-    bcrypt.hash(password, null, null, function(err, hash) {
-    // Store hash in your password DB.
-    console.log(hash);
-});
-    db('users').insert({
-        email: email,
-        name: name,
-        joined: new Date()
-    }).then(console.log)
-    res.json(database.users[database.users.length-1])
+//     bcrypt.hash(password, null, null, function(err, hash) {
+//     // Store hash in your password DB.
+//     console.log(hash);
+// });
+    db('users')
+        .returning('*')
+        .insert({
+            email: email,
+            name: name,
+            joined: new Date()
+    })
+        .then(user => {
+            res.json(user[0])
+    }) // in case of an error, we catch it in this way
+        .catch(err => res.status(400).json('unable to join'))
+    
 })
 
 app.get("/profile/:id", (req,res) => {
