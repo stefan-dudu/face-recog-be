@@ -95,16 +95,17 @@ app.post('/register', (req, res)=>{
 
 app.get("/profile/:id", (req,res) => {
         const{id} = req.params;
-    let found = false;
-    database.users.forEach(user => {
-        // if users from our upper local DB(database array) is === to the id recived from params(i guess is postman)
-        if(user.id === id){
-            return res.json(user);
-        }
-});
-    if(!found) {
-        res.status(400).json("ain't no user with this name")
-    }
+    db.select('*').from('users').where({id})
+    .then (user => {
+            if(user.length) {
+                res.json(user[0])
+            } else {
+                res.status(400).json('not found')
+            }
+            
+    })
+    .catch(err => res.status(400).json('there been an error getting the user'))
+
 })
 
 app.put('/image', (req, res)=>{
