@@ -2,9 +2,10 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const bcrypt = require('bcrypt-nodejs');
 const cors = require('cors');
-const knex = require('knex')
+const knex = require('knex');
+const { response } = require('express');
 
-knex({
+const db = knex({
   client: 'pg',
   connection: {
     host : '127.0.0.1',
@@ -12,6 +13,10 @@ knex({
     password : '',
     database : 'smart-brain'
   }
+});
+
+db.select ('*').from('users').then(data => {
+    console.log(data);
 });
 
 const app = express();
@@ -51,15 +56,6 @@ app.get('/', (req, res) => {
 })
 
 app.post('/signin', (req, res)=>{
-
-    // // Load hash from your password DB.
-    // bcrypt.compare("bacon", '$2a$10$xAiGiB2zJvYEZnaCTVJBz.gE8np8lnbDjKFqPXxOsVMfMzSDosO0W', function(err, res) {
-    //     console.log('first try', res)
-    // });
-    // bcrypt.compare("apples", '$2a$10$xAiGiB2zJvYEZnaCTVJBz.gE8np8lnbDjKFqPXxOsVMfMzSDosO0W', function(err, res) {
-    //     console.log('2nd try', res)
-    // });
-
     if(req.body.email === database.users[0].email &&
        req.body.password === database.users[0].password) {
            res.json('username and password are OK')
@@ -70,55 +66,46 @@ app.post('/signin', (req, res)=>{
 
 app.post('/register', (req, res)=>{
     const{email, name, password} = req.body;
-    bcrypt.hash(password, null, null, function(err, hash) {
-    // Store hash in your password DB.
-    console.log(hash);
-});
-    database.users.push({
-        id:'125',
-        name: name,
-        email: email,
-        entries: 0,
-        joined: new Date() 
+    db('users')
+        .returning('*')
+        .insert({
+            email: email,
+            name: name,
+            joined: new Date()
     })
-    res.json(database.users[database.users.length-1])
+        .then(user => {
+            res.json(user[0])
+    }) // in case of an error, we catch it in this way
+        .catch(err => res.status(400).json('unable to join'))
+    
 })
 
 app.get("/profile/:id", (req,res) => {
         const{id} = req.params;
-    let found = false;
-    database.users.forEach(user => {
-        // if users from our upper local DB(database array) is === to the id recived from params(i guess is postman)
-        if(user.id === id){
-            return res.json(user);
-        }
-});
-    if(!found) {
-        res.status(400).json("ain't no user with this name")
-    }
+    db.select('*').from('users').where({id})
+    .then (user => {
+            if(user.length) {
+                res.json(user[0])
+            } else {
+                res.status(400).json('not found')
+            }
+            
+    })
+    .catch(err => res.status(400).json('there been an error getting the user'))
+
 })
 
 app.put('/image', (req, res)=>{
-        const{id} = req.body;
-    let found = false;
-    database.users.forEach(user => {
-        if(user.id === id){
-            user.entries++;
-            return res.json(user.entries);
-        }
+    const{id} = req.body;
+    knex('books')
+    db('users').where('id', '=', id)
+    .increment('entries', 1)
+    .returning('entries')
+    .then(entries => {
+        res.json(entries[0]);
+    })
+    .catch(err => res.status(400).json('unable to get entries'))
 })
-    if(!found) {
-        res.status(400).json("ain't no user with this name")
-    }
-})
-
-
-
-
-
-
-
-
 
 app.listen(3000, () => {
     console.log('app is running on port 3000')
